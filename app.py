@@ -761,9 +761,9 @@ if submitted:
         "company": company.strip(),
         "preferred_language": preferred_language,
         "is_builder_sales": "はい" if is_builder_sales else "いいえ",
-        "builder_sales": "はい" if is_builder_sales else "いいえ",
+        "builder_sales": "はい" if is_builder_sales else "いいえ",`n        "建築営業マン": "はい" if is_builder_sales else "いいえ",
         "wants_demo": "はい" if wants_demo else "いいえ",
-        "demo_requested": "はい" if wants_demo else "いいえ",
+        "demo_requested": "はい" if wants_demo else "いいえ",`n        "デモ予約希望": "はい" if wants_demo else "いいえ",
     }
 
     result = agp_send_to_sheet(payload)
@@ -780,4 +780,5 @@ if submitted:
         st.error(result.get("message") or "外部保存に失敗しました")
 
 st.markdown("</div></div>", unsafe_allow_html=True)
+
 
