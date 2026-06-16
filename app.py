@@ -632,3 +632,152 @@ HTML = r"""
 
 components.html(HTML, height=900, scrolling=True)
 
+
+# AGP_REAL_FORM_V1
+# 宇宙型LPの下に、本物送信用フォームを追加します。
+import os
+from datetime import datetime, timezone
+
+try:
+    import requests
+except Exception:
+    requests = None
+
+
+def agp_get_secret(name: str) -> str:
+    try:
+        value = st.secrets.get(name, "")
+    except Exception:
+        value = ""
+    if not value:
+        value = os.environ.get(name, "")
+    return str(value).strip()
+
+
+def agp_send_to_sheet(payload: dict) -> dict:
+    url = agp_get_secret("APPS_SCRIPT_WEB_APP_URL")
+    if not url:
+        return {
+            "ok": None,
+            "message": "外部保存URLが未接続です。Streamlit Secrets に APPS_SCRIPT_WEB_APP_URL を設定してください。",
+        }
+
+    if requests is None:
+        return {
+            "ok": False,
+            "message": "送信ライブラリを確認中です。",
+        }
+
+    try:
+        response = requests.post(url, json=payload, timeout=12)
+        try:
+            result = response.json()
+        except ValueError:
+            result = {}
+
+        if response.ok and result.get("ok") is True:
+            return result
+
+        return {
+            "ok": False,
+            "message": result.get("message") or "外部保存に失敗しました。",
+        }
+    except Exception:
+        return {
+            "ok": False,
+            "message": "外部保存に失敗しました。",
+        }
+
+
+st.markdown(
+    """
+    <style>
+    .agp-real-wrap {
+        max-width: 760px;
+        margin: 0 auto 80px;
+        padding: 0 18px;
+    }
+    .agp-real-card {
+        border: 1px solid rgba(84,216,255,.28);
+        background: linear-gradient(180deg, rgba(3,8,20,.94), rgba(4,12,28,.86));
+        box-shadow: 0 0 70px rgba(84,216,255,.16), 0 24px 90px rgba(0,0,0,.42);
+        border-radius: 30px;
+        padding: 28px;
+        color: white;
+    }
+    .agp-real-card h2 {
+        margin: 0 0 10px;
+        font-size: clamp(28px, 5vw, 48px);
+        letter-spacing: -0.04em;
+    }
+    .agp-real-card p {
+        color: rgba(226,238,255,.78);
+        line-height: 1.9;
+        margin: 0 0 22px;
+    }
+    .stButton button {
+        width: 100%;
+        border: 0 !important;
+        border-radius: 999px !important;
+        padding: 0.9rem 1.2rem !important;
+        font-weight: 900 !important;
+        color: #00131d !important;
+        background: linear-gradient(135deg, #5fffd2, #54d8ff, #337dff) !important;
+        box-shadow: 0 0 40px rgba(84,216,255,.22) !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    '<div class="agp-real-wrap"><div class="agp-real-card"><h2>本物送信用フォーム</h2><p>希望建築地住所を入れると、Googleスプレッドシート保存ルートへ送信します。</p>',
+    unsafe_allow_html=True,
+)
+
+with st.form("agp_real_registration_form", clear_on_submit=False):
+    name = st.text_input("お名前", value="テスト 太郎")
+    email = st.text_input("メールアドレス", value="test@example.com")
+    desired_building_address = st.text_input("希望建築地住所", value="東京都港区六本木1丁目1-1")
+    country = st.text_input("国", value="日本")
+    company = st.text_input("会社名", value="テスト建設")
+    preferred_language = st.selectbox("希望言語", ["日本語", "English", "中文", "한국어", "Español"])
+    is_builder_sales = st.checkbox("建築営業マンですか？", value=True)
+    wants_demo = st.checkbox("デモ予約も希望する", value=True)
+
+    submitted = st.form_submit_button("希望建築地住所を入れて、商談を動かす →")
+
+if submitted:
+    payload = {
+        "source": "meta-rc-pulse-streamlit-cosmic-lp",
+        "submitted_at": datetime.now(timezone.utc).isoformat(),
+        "name": name.strip(),
+        "email": email.strip(),
+        "desired_building_address": desired_building_address.strip(),
+        "希望建築地住所": desired_building_address.strip(),
+        "address": desired_building_address.strip(),
+        "phone": desired_building_address.strip(),
+        "country": country.strip(),
+        "company": company.strip(),
+        "preferred_language": preferred_language,
+        "is_builder_sales": "はい" if is_builder_sales else "いいえ",
+        "builder_sales": "はい" if is_builder_sales else "いいえ",
+        "wants_demo": "はい" if wants_demo else "いいえ",
+        "demo_requested": "はい" if wants_demo else "いいえ",
+    }
+
+    result = agp_send_to_sheet(payload)
+
+    if result.get("ok") is True:
+        st.success(result.get("message") or "Googleスプレッドシートへ保存しました")
+        if result.get("mail_sent"):
+            st.info("自動返信メールを送信しました")
+        if result.get("admin_mail_sent"):
+            st.info("管理者通知メールを送信しました")
+    elif result.get("ok") is None:
+        st.warning(result.get("message") or "外部保存URLが未接続です")
+    else:
+        st.error(result.get("message") or "外部保存に失敗しました")
+
+st.markdown("</div></div>", unsafe_allow_html=True)
+
