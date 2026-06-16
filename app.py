@@ -580,11 +580,11 @@ HTML = r"""
         <div class="kicker">Final CTA</div>
         <h2>まずは1件、<span class="grad">住所から商談を動かす。</span></h2>
         <form class="form" onsubmit="event.preventDefault(); alert('デモ送信です。次の段階で無料情報取得、5点照合、3DCG没入体験、提案平面図・立面図、概算積算、収益提案書生成エンジンに接続します。');">
-          <label>対象住所</label>
-          <input value="東京都世田谷区桜新町2-15-1" oninput="this.setAttribute('value', this.value)" />
+          <label>希望建築地住所</label>
+          <input name="desired_building_address" value="東京都港区六本木1丁目1-1" oninput="this.setAttribute('value', this.value)" />
           <label>頭金</label>
           <input value="100万円" oninput="this.setAttribute('value', this.value)" />
-          <button class="btn primary" style="width:100%;border:0;cursor:pointer;" type="submit">住所を入れて、商談を動かす →</button>
+          <button class="btn primary" style="width:100%;border:0;cursor:pointer;" type="submit">希望建築地住所を入れて、商談を動かす →</button>
           <div class="note">このフォームはLP用デモです。実装時は無料情報取得、5点照合、3DCG没入体験、提案平面図・立面図、概算積算、収益提案書生成エンジンと接続します。</div>
         </form>
       </div>
@@ -631,3 +631,4 @@ HTML = r"""
 """
 
 components.html(HTML, height=900, scrolling=True)
+
