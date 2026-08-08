@@ -16,7 +16,7 @@ if all(path.is_file() for path in guide_parts):
         'img_uri = f"data:image/jpeg;base64,{GUIDE_IMAGE_B64}" if GUIDE_IMAGE_B64 else ""',
     )
 
-video_names = tuple(f"facade_hq_{index:02d}.b64" for index in range(9))
+video_names = tuple(f"facade_hq_{index:02d}.b64" for index in range(17))
 video_parts = [hq_dir / name for name in video_names]
 if all(path.is_file() for path in video_parts):
     old_video_loader = '''FACADE_VIDEO_B64 = "".join(\n    read_embedded_text(name)\n    for name in ("facade_01.b64", "facade_02.b64", "facade_03.b64")\n)'''
