@@ -1,4 +1,6 @@
+import base64
 import os
+from pathlib import Path
 from datetime import datetime, timezone
 
 import streamlit as st
@@ -9,10 +11,25 @@ except ImportError:
     requests = None
 
 st.set_page_config(
-    page_title="Meta RC Pulse | 宇宙型ランディングページ",
-    page_icon="🌌",
+    page_title="Meta RC Pulse | あなたの夢に、確かな一歩を。",
+    page_icon="✦",
     layout="wide",
     initial_sidebar_state="collapsed",
+)
+
+ROOT_DIR = Path(__file__).resolve().parent
+EMBEDDED_DIR = ROOT_DIR / "embedded"
+
+def read_embedded_text(name: str) -> str:
+    try:
+        return (EMBEDDED_DIR / name).read_text(encoding="utf-8").strip()
+    except Exception:
+        return ""
+
+GUIDE_IMAGE_B64 = read_embedded_text("guide.b64")
+FACADE_VIDEO_B64 = "".join(
+    read_embedded_text(name)
+    for name in ("facade_01.b64", "facade_02.b64", "facade_03.b64")
 )
 
 
@@ -27,9 +44,9 @@ def get_secret(name: str) -> str:
 def send_to_sheet(payload: dict) -> dict:
     url = get_secret("APPS_SCRIPT_WEB_APP_URL")
     if not url:
-        return {"ok": None, "message": "外部保存URLが未接続です", "mail_sent": False}
+        return {"ok": None, "message": "受付先の接続を確認中です", "mail_sent": False}
     if requests is None:
-        return {"ok": False, "message": "送信ライブラリを確認中です", "mail_sent": False}
+        return {"ok": False, "message": "送信機能を確認中です", "mail_sent": False}
     try:
         response = requests.post(url, json=payload, timeout=12)
         try:
@@ -38,108 +55,157 @@ def send_to_sheet(payload: dict) -> dict:
             data = {}
         if response.ok and data.get("ok") is True:
             return data
-        return {"ok": False, "message": data.get("message") or "外部保存に失敗しました", "mail_sent": False}
+        return {"ok": False, "message": data.get("message") or "受付に失敗しました", "mail_sent": False}
     except Exception:
-        return {"ok": False, "message": "外部保存に失敗しました", "mail_sent": False}
+        return {"ok": False, "message": "受付に失敗しました", "mail_sent": False}
 
 
+st.markdown("""
+<style>
+#MainMenu, footer, header, [data-testid="stToolbar"], [data-testid="stDecoration"] {display:none !important;}
+html, body, [data-testid="stAppViewContainer"], .stApp {
+  background:
+    radial-gradient(circle at 16% 10%, rgba(44,104,208,.20), transparent 34%),
+    radial-gradient(circle at 84% 8%, rgba(36,166,220,.12), transparent 30%),
+    radial-gradient(circle at 50% 72%, rgba(204,151,67,.08), transparent 36%),
+    linear-gradient(155deg,#01030a 0%,#040b1a 46%,#01030a 100%) !important;
+  color:#fff;
+}
+.block-container {max-width:1120px; padding:1.1rem 1rem 5rem !important;}
+.hero-kicker {text-align:center;color:#d8b879;font-weight:800;letter-spacing:.16em;font-size:.82rem;margin:.5rem 0 .7rem;}
+.hero-help {text-align:center;color:rgba(242,248,255,.94);font-size:clamp(1.02rem,2.2vw,1.28rem);font-weight:800;line-height:1.7;margin:0 auto 1rem;}
+.hero-help small {display:block;color:rgba(217,230,245,.70);font-size:.78rem;font-weight:650;margin-top:.35rem;}
+.guide-stage {position:relative;max-width:920px;margin:0 auto;border-radius:28px;overflow:hidden;border:1px solid rgba(213,176,103,.36);box-shadow:0 30px 90px rgba(0,0,0,.48),0 0 46px rgba(44,125,209,.14);}
+.guide-stage img {display:block;width:100%;height:auto;}
+.guide-stage:after {content:"";position:absolute;inset:auto 0 0;height:31%;background:linear-gradient(180deg,transparent,rgba(1,4,13,.72) 58%,rgba(1,4,13,.98));pointer-events:none;}
+.guide-hit {position:absolute;z-index:5;border:1px solid transparent;border-radius:20px;}
+.guide-hit:hover {border-color:rgba(255,226,164,.9);box-shadow:0 0 30px rgba(255,205,100,.34);background:rgba(255,255,255,.03);}
+.guide-hit.female {left:32.9%;top:32.6%;width:17.5%;height:13.5%;}
+.guide-hit.male {left:50.8%;top:32.6%;width:17.5%;height:13.5%;}
+.guide-caption {text-align:center;color:rgba(226,238,255,.72);font-size:.79rem;margin:.65rem 0 1rem;}
+.selection-note {max-width:760px;margin:1rem auto;text-align:center;padding:.85rem 1rem;border-radius:999px;border:1px solid rgba(214,179,107,.35);background:rgba(20,29,48,.58);color:#fff1ca;font-weight:800;}
+section.pulse-section {margin:clamp(3rem,7vw,5.5rem) auto;max-width:1020px;}
+.section-eyebrow {color:#d9b26a;font-size:.78rem;letter-spacing:.17em;font-weight:900;text-align:center;margin-bottom:.65rem;}
+.section-title {text-align:center;font-size:clamp(2rem,5.2vw,4rem);line-height:1.15;margin:0;color:#fff;font-weight:950;letter-spacing:-.035em;}
+.section-copy {max-width:800px;margin:1rem auto 0;text-align:center;color:rgba(225,237,250,.80);line-height:1.9;font-size:clamp(.98rem,1.8vw,1.14rem);}
+[data-testid="stVideo"] video {border-radius:24px !important;box-shadow:0 28px 80px rgba(0,0,0,.46),0 0 38px rgba(60,190,255,.11);border:1px solid rgba(213,176,103,.30);}
+.form-shell {max-width:840px;margin:2rem auto;padding:clamp(1.1rem,3vw,1.8rem);border-radius:26px;border:1px solid rgba(107,225,244,.24);background:rgba(4,12,28,.78);box-shadow:0 22px 70px rgba(0,0,0,.35);}
+div[data-testid="stForm"] label {color:#eaf6ff !important;font-weight:800 !important;}
+div[data-testid="stTextInput"] input {background:rgba(250,253,255,.96) !important;color:#061124 !important;border-radius:14px !important;}
+.stButton button, div[data-testid="stFormSubmitButton"] button {width:100%;min-height:3.7rem;border-radius:999px !important;font-weight:900 !important;border:1px solid rgba(219,181,108,.55) !important;background:linear-gradient(135deg,#e7c77f,#9a6b25) !important;color:#07101c !important;}
+.flow-words {display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem;margin:1.4rem auto;}
+.flow-words span {padding:.65rem 1rem;border-radius:999px;border:1px solid rgba(113,225,245,.25);background:rgba(13,42,70,.40);color:#dffaff;font-weight:800;}
+.three-grid {display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.4rem;}
+.value-cell {padding:1.2rem;border-radius:22px;border:1px solid rgba(214,177,104,.26);background:linear-gradient(145deg,rgba(13,22,42,.82),rgba(6,12,26,.80));text-align:center;}
+.value-cell strong {display:block;color:#fff2c9;font-size:1.12rem;margin-bottom:.35rem;}
+.value-cell span {color:rgba(222,236,250,.72);font-size:.9rem;line-height:1.6;}
+.course {padding:clamp(1.4rem,4vw,2.4rem);border-radius:30px;border:1px solid rgba(222,184,111,.38);background:radial-gradient(circle at 50% 0%,rgba(218,166,66,.15),transparent 42%),rgba(5,10,23,.82);text-align:center;}
+.course-price {font-size:clamp(2.3rem,6vw,4.4rem);font-weight:950;color:#fff0bd;margin:.5rem 0;}
+.course-note {color:rgba(226,238,250,.72);line-height:1.75;}
+.result-box {max-width:840px;margin:1.2rem auto;padding:1.2rem;border-radius:22px;border:1px solid rgba(88,236,184,.32);background:rgba(9,51,43,.42);text-align:center;}
+.result-box strong {display:block;font-size:clamp(1.45rem,4vw,2.2rem);color:#e8fff7;}
+.result-box span {display:block;margin-top:.45rem;color:rgba(215,241,233,.78);}
+@media(max-width:640px) {
+ .block-container {padding:.6rem .65rem 4rem !important;}
+ .guide-stage {border-radius:20px;}
+ .guide-hit {border-radius:14px;}
+ .three-grid {grid-template-columns:1fr;}
+ .section-title {font-size:clamp(1.9rem,10vw,3rem);}
+}
+</style>
+""", unsafe_allow_html=True)
+
+selected = str(st.query_params.get("guide", "") or "").lower()
+if selected not in {"female", "male"}:
+    selected = ""
+
+img_uri = f"data:image/webp;base64,{GUIDE_IMAGE_B64}" if GUIDE_IMAGE_B64 else ""
+selected_label = "女性パルス" if selected == "female" else "男性パルス" if selected == "male" else ""
+
+st.markdown('<div class="hero-kicker">META RC PULSE</div>', unsafe_allow_html=True)
 st.markdown(
-    """
-    <style>
-    #MainMenu, footer, header {visibility: hidden;}
-    .block-container {max-width: 100% !important; padding: 0 0 4rem !important;}
-    [data-testid="stAppViewContainer"] {
-        background: radial-gradient(circle at 80% 10%, rgba(84,216,255,.16), transparent 30%),
-                    radial-gradient(circle at 50% 110%, rgba(49,132,255,.22), transparent 34%),
-                    linear-gradient(180deg,#02040b 0%,#06101f 52%,#02040b 100%);
-        color: white;
-    }
-    .hero {min-height: 86vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 88px 18px 50px;}
-    .pill {border: 1px solid rgba(95,255,210,.32); background: rgba(95,255,210,.10); color: #c8fff3; border-radius: 999px; padding: 8px 16px; font-weight: 900;}
-    .hero h1 {font-size: clamp(44px, 9vw, 92px); line-height: 1.04; letter-spacing: -.06em; margin: 22px 0 0; font-weight: 1000;}
-    .grad {background: linear-gradient(90deg,#fff,#5fffd2,#54d8ff,#fff); -webkit-background-clip: text; background-clip: text; color: transparent;}
-    .lead {max-width: 880px; color: #cbd6e4; line-height: 2; font-size: clamp(15px,2.4vw,19px); margin: 24px auto 0;}
-    .card {width: min(980px, calc(100% - 32px)); margin: 28px auto; border: 1px solid rgba(84,216,255,.24); background: rgba(3,8,20,.76); border-radius: 30px; padding: clamp(22px,4vw,34px); box-shadow: 0 0 60px rgba(84,216,255,.10);}
-    .card h2 {font-size: clamp(30px,5vw,52px); margin: 0 0 14px; letter-spacing: -.04em;}
-    .card p {color: rgba(226,238,255,.82); line-height: 1.9;}
-    .flow {display: grid; grid-template-columns: repeat(auto-fit, minmax(145px,1fr)); gap: 12px; margin-top: 20px;}
-    .flow div {border: 1px solid rgba(95,255,210,.22); background: rgba(95,255,210,.08); border-radius: 18px; padding: 16px; text-align: center; font-weight: 900;}
-    .form-card {width: min(780px, calc(100% - 32px)); margin: 30px auto 80px; border: 1px solid rgba(84,216,255,.28); background: rgba(3,8,20,.86); border-radius: 30px; padding: 28px; box-shadow: 0 0 70px rgba(84,216,255,.16);}
-    div[data-testid="stTextInput"] label, div[data-testid="stSelectbox"] label, div[data-testid="stCheckbox"] label {color: #eaffff !important; font-weight: 850 !important;}
-    div[data-testid="stCheckbox"] {border: 1px solid rgba(95,255,210,.30); background: rgba(95,255,210,.07); border-radius: 16px; padding: 8px 12px; margin: 8px 0;}
-    .stButton button {width: 100%; border: 0 !important; border-radius: 999px !important; padding: .95rem 1.2rem !important; font-weight: 950 !important; color: #00131d !important; background: linear-gradient(135deg,#5fffd2,#54d8ff,#337dff) !important;}
-    </style>
-    """,
+    '<div class="hero-help">案内人を選んで、Meta RC Pulseを始めてください。'
+    '<small>写真の「女性」「男性」をタップできます。音声は、あなたが開始するまで流れません。</small></div>',
     unsafe_allow_html=True,
 )
-
 st.markdown(
-    """
-    <section class="hero">
-      <div class="pill">契約決定までをパルスコースで完結</div>
-      <h1>住所を聞いた瞬間、<br><span class="grad">商談が動き出す。</span></h1>
-      <p class="lead">建設会社の営業マンが、住所を聞いたその場から法規・最大ボリューム・3DCG没入体験・提案平面図・立面図・概算積算・収益提案までを組み立てるためのAI営業支援システム。</p>
-    </section>
-    <section class="card">
-      <h2>営業マンの初期提案力を、<span class="grad">建築士へ渡せるレベルへ。</span></h2>
-      <p>公的情報優先、5点照合、安全型の緩和採用。まずは投資家と土地オーナー様に、可能性と完成イメージを前向きに届けます。</p>
-      <div class="flow"><div>住所</div><div>法規</div><div>最大ボリューム</div><div>3DCG没入体験</div><div>概算積算</div><div>収益提案</div></div>
-    </section>
-    <section class="form-card">
-      <h2>本物送信用フォーム</h2>
-      <p>希望建築地住所を入れると、Googleスプレッドシート保存ルートへ送信します。</p>
-    """,
+    f'''<div class="guide-stage">
+      <img src="{img_uri}" alt="Meta RC Pulse 女性・男性パルス案内人">
+      <a class="guide-hit female" href="?guide=female" target="_self" aria-label="女性パルスを選ぶ"></a>
+      <a class="guide-hit male" href="?guide=male" target="_self" aria-label="男性パルスを選ぶ"></a>
+    </div>''',
     unsafe_allow_html=True,
 )
+st.markdown('<div class="guide-caption">深い宇宙、紺とゴールド。ここから土地の未来へ入ります。</div>', unsafe_allow_html=True)
 
-with st.form("agp_real_registration_form", clear_on_submit=False):
-    name = st.text_input("お名前", value="テスト 太郎")
-    email = st.text_input("メールアドレス", value="test@example.com")
-    address = st.text_input("希望建築地住所", value="東京都港区六本木1丁目1-1")
-    country = st.text_input("国", value="日本")
-    company = st.text_input("会社名", value="テスト建設")
-    language = st.selectbox("希望言語", ["日本語", "English", "中文", "한국어", "Español"])
-    is_builder_sales = st.checkbox("建築営業マンですか？", value=True)
-    wants_demo = st.checkbox("デモ予約も希望する", value=True)
-    submitted = st.form_submit_button("希望建築地住所を入れて、商談を動かす →")
+if selected_label:
+    st.markdown(f'<div class="selection-note">{selected_label}を選択しました。中央の光から先へ進みます。</div>', unsafe_allow_html=True)
+    if st.button("✦ パルスを呼び出す", key="start_pulse"):
+        st.session_state["pulse_started"] = True
+    if st.session_state.get("pulse_started"):
+        st.info("ようこそ、Meta RC パルスへ。私は、パルスと申します。本日はコンシェルジュとして、お客様をご案内いたします。")
+else:
+    st.markdown('<div class="selection-note">まず「女性」または「男性」をタップしてください。</div>', unsafe_allow_html=True)
+
+st.markdown('<section class="pulse-section"><div class="section-eyebrow">FIRST IMPRESSION</div><h2 class="section-title">想像した建物が、<br>そのまま目の前に現れる。</h2><p class="section-copy">昼は街になじみ、夜は街に笑顔を灯す。まずは、その景色をご覧ください。</p></section>', unsafe_allow_html=True)
+if FACADE_VIDEO_B64:
+    video_bytes = base64.b64decode(FACADE_VIDEO_B64)
+    st.video(video_bytes, autoplay=True, muted=True, loop=True)
+else:
+    st.warning("建物イメージ動画を読み込んでいます。")
+st.markdown('<p class="section-copy" style="margin-top:.7rem">この建物が、あなたの土地に生まれる可能性があります。</p>', unsafe_allow_html=True)
+
+st.markdown('<section class="pulse-section"><div class="section-eyebrow">YOUR LAND</div><h2 class="section-title">この土地の可能性を、<br>パルスに聞く。</h2><p class="section-copy">住所ごとの根拠を確認してから、建物の可能性と想定月々純利益をご案内します。固定のサンプル金額は使いません。</p></section>', unsafe_allow_html=True)
+
+st.markdown('<div class="form-shell">', unsafe_allow_html=True)
+with st.form("pulse_land_request", clear_on_submit=False):
+    address = st.text_input("希望建築地住所", placeholder="例：東京都世田谷区…")
+    name = st.text_input("お名前", placeholder="お名前")
+    email = st.text_input("メールアドレス", placeholder="name@example.com")
+    submitted = st.form_submit_button("この土地の可能性を確認する →")
+st.markdown('</div>', unsafe_allow_html=True)
 
 if submitted:
-    sales_value = "はい" if is_builder_sales else "いいえ"
-    demo_value = "はい" if wants_demo else "いいえ"
-    payload = {
-        "source": "meta-rc-pulse-streamlit-cosmic-lp",
-        "submitted_at": datetime.now(timezone.utc).isoformat(),
-        "name": name.strip(),
-        "email": email.strip(),
-        "desired_building_address": address.strip(),
-        "希望建築地住所": address.strip(),
-        "address": address.strip(),
-        "phone": address.strip(),
-        "country": country.strip(),
-        "company": company.strip(),
-        "company_name": company.strip(),
-        "preferred_language": language,
-        "preferredLanguage": language,
-        "is_sales_person": sales_value,
-        "isSalesPerson": sales_value,
-        "is_builder_sales": sales_value,
-        "builder_sales": sales_value,
-        "建築営業マン": sales_value,
-        "wants_demo": demo_value,
-        "wantsDemo": demo_value,
-        "demo_requested": demo_value,
-        "デモ予約希望": demo_value,
-    }
-    result = send_to_sheet(payload)
-    if result.get("ok") is True:
-        st.success(result.get("message") or "Googleスプレッドシートへ保存しました")
-        if result.get("mail_sent"):
-            st.info("自動返信メールを送信しました")
-        if result.get("admin_mail_sent"):
-            st.info("管理者通知メールを送信しました")
-    elif result.get("ok") is None:
-        st.warning(result.get("message") or "外部保存URLが未接続です")
+    if not address.strip():
+        st.error("希望建築地住所を入力してください。")
     else:
-        st.error(result.get("message") or "外部保存に失敗しました")
+        payload = {
+            "source": "meta-rc-pulse-streamlit-latest-lp",
+            "submitted_at": datetime.now(timezone.utc).isoformat(),
+            "name": name.strip(),
+            "email": email.strip(),
+            "desired_building_address": address.strip(),
+            "希望建築地住所": address.strip(),
+            "address": address.strip(),
+        }
+        result = send_to_sheet(payload)
+        if result.get("ok") is True:
+            st.success(result.get("message") or "受付しました。")
+        elif result.get("ok") is None:
+            st.info("住所を受け付けました。公開側の根拠連携を確認後、結果を表示します。")
+        else:
+            st.warning(result.get("message") or "受付接続を確認中です。")
+        st.markdown('<div class="result-box"><strong>想定 月々純利益：確認後に表示</strong><span>法規・敷地条件・建築費・賃料等の案件根拠が確認できるまで、金額は表示しません。</span></div>', unsafe_allow_html=True)
 
-st.markdown("</section>", unsafe_allow_html=True)
+st.markdown('''<section class="pulse-section">
+<div class="section-eyebrow">WHY THIS BUILDING</div>
+<h2 class="section-title">音楽。映像。配信。SNS。<br>創る人が、住みたくなる場所へ。</h2>
+<div class="flow-words"><span>MUSIC</span><span>VIDEO</span><span>STREAMING</span><span>SNS</span><span>CREATOR</span></div>
+<p class="section-copy">住む場所と創る場所が近づくことで、建物の価値に新しい理由が生まれます。全貌・詳細3DCG・VRはパルスコースで体験します。</p>
+</section>
+<section class="pulse-section">
+<div class="section-eyebrow">DAY / NIGHT</div>
+<h2 class="section-title">昼は、街になじむ。<br>夜は、街に笑顔を灯す。</h2>
+<p class="section-copy">ガラスに季節が映り、夜は静かなラインライトが街へ小さな景色を返す。街の灯りを奪うのではなく、月夜にそっと寄り添う光へ。</p>
+</section>
+<section class="pulse-section">
+<div class="section-eyebrow">THREE-WAY VALUE</div>
+<h2 class="section-title">住む人。地域の人。建物を持つ人。<br>三方よし。</h2>
+<div class="three-grid"><div class="value-cell"><strong>CREATOR</strong><span>住みながら、創作できる。</span></div><div class="value-cell"><strong>TOWN</strong><span>昼はなじみ、夜は景色を返す。</span></div><div class="value-cell"><strong>OWNER</strong><span>土地を、長く価値を生む建物へ。</span></div></div>
+</section>
+<section class="pulse-section course">
+<div class="section-eyebrow">PULSE COURSE</div>
+<h2 class="section-title">あなたが今見たのは、<br>まだ、この土地の可能性の入口です。</h2>
+<div class="course-price">月額 9,800円</div>
+<p class="course-note">パルスコースでは、詳細3DCG・提案図面・VRなどを通して、この土地に生まれる建物をさらに深く確認していきます。金額・法規・建築可否は案件根拠と有資格者確認に基づいて扱います。</p>
+</section>''', unsafe_allow_html=True)
