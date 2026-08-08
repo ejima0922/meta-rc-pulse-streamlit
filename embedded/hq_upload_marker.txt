@@ -1,0 +1,1 @@
+HQ media upload in progress. Safe to ignore until app.py references HQ chunks.
