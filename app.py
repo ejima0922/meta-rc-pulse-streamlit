@@ -7,6 +7,33 @@ from pathlib import Path
 core_path = Path(__file__).resolve().with_name("app_core.py")
 source = core_path.read_text(encoding="utf-8")
 
+# Public display-only compatibility layer for the legacy Streamlit deployment.
+# Do not rename internal repository/source identifiers or payload keys here.
+_PUBLIC_DISPLAY_REPLACEMENTS = (
+    (
+        'page_title="Meta RC Pulse | あなたの夢に、確かな一歩を。"',
+        'page_title="EJIMA WORLD | あなたの夢に、確かな一歩を。"',
+    ),
+    (
+        '<div class="hero-kicker">META RC PULSE</div>',
+        '<div class="hero-kicker">EJIMA WORLD</div>',
+    ),
+    (
+        '案内人を選んで、Meta RC Pulseを始めてください。',
+        '案内人を選んで、EJIMA WORLDを始めてください。',
+    ),
+    (
+        'alt="Meta RC Pulse 女性・男性パルス案内人"',
+        'alt="EJIMA WORLD 女性・男性パルス案内人"',
+    ),
+    (
+        'ようこそ、Meta RC パルスへ。私は、パルスと申します。本日はコンシェルジュとして、お客様をご案内いたします。',
+        'ようこそ、EJIMA WORLDへ。EJIMA WORLDのAIコンシェルジュ、パルスです。',
+    ),
+)
+for before, after in _PUBLIC_DISPLAY_REPLACEMENTS:
+    source = source.replace(before, after)
+
 hq_dir = Path(__file__).resolve().parent / "embedded_hq"
 guide_names = tuple(f"guide_full_{index:02d}.b64" for index in range(26))
 guide_parts = [hq_dir / name for name in guide_names]
