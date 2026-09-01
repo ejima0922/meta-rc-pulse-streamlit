@@ -17,7 +17,9 @@ def test_public_flow_starts_with_microphone_then_guide_choice() -> None:
 
 
 def test_approved_video_is_motion_first_and_local() -> None:
-    assert "st.video(base64.b64decode(FACADE_VIDEO_B64), autoplay=True, muted=True, loop=True)" in SOURCE
+    assert '<video id="pulse-facade" autoplay muted loop playsinline controls preload="auto"' in SOURCE
+    assert "const keepPlaying=" in SOURCE
+    assert "video.play()" in SOURCE
     assert "FACADE_VIDEO_B64" in SOURCE
 
 

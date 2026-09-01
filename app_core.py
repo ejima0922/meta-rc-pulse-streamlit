@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 try:
     import requests
@@ -193,7 +194,28 @@ st.markdown(
     unsafe_allow_html=True,
 )
 if FACADE_VIDEO_B64:
-    st.video(base64.b64decode(FACADE_VIDEO_B64), autoplay=True, muted=True, loop=True)
+    components.html(
+        f'''<!doctype html>
+<html lang="ja"><head><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+html,body{{margin:0;background:#020817;overflow:hidden}}
+video{{display:block;width:100%;height:auto;max-height:78vh;object-fit:contain;background:#020817;border-radius:24px}}
+</style></head><body>
+<video id="pulse-facade" autoplay muted loop playsinline controls preload="auto"
+  aria-label="Meta RC Pulse 建物イメージ動画">
+  <source src="data:video/mp4;base64,{FACADE_VIDEO_B64}" type="video/mp4">
+</video>
+<script>
+const video=document.getElementById('pulse-facade');
+video.muted=true;
+const keepPlaying=()=>{{const attempt=video.play();if(attempt)attempt.catch(()=>{{}});}};
+video.addEventListener('canplay',keepPlaying,{{once:true}});
+document.addEventListener('visibilitychange',()=>{{if(!document.hidden)keepPlaying();}});
+keepPlaying();
+</script></body></html>''',
+        height=640,
+        scrolling=False,
+    )
 else:
     st.warning("建物イメージ動画を読み込んでいます。")
 st.markdown('<p class="section-copy" style="margin-top:.7rem">この建物が、あなたの土地に生まれる可能性があります。</p>', unsafe_allow_html=True)
