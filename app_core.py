@@ -186,6 +186,7 @@ if selected_label:
         st.info("ようこそ、Meta RC パルスへ。私は、パルスと申します。本日はコンシェルジュとして、お客様をご案内いたします。")
 else:
     st.markdown('<div class="selection-note">まず「女性」または「男性」をタップしてください。</div>', unsafe_allow_html=True)
+    st.stop()
 
 st.markdown(
     '<section class="pulse-section"><div class="section-eyebrow">FIRST IMPRESSION</div>'

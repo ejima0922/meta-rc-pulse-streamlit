@@ -8,8 +8,11 @@ def test_public_flow_starts_with_microphone_then_guide_choice() -> None:
     microphone_gate = SOURCE.index('if entry_stage != "guide" and not selected:')
     microphone_stop = SOURCE.index("st.stop()", microphone_gate)
     guide_stage = SOURCE.index('class="guide-stage"')
+    guide_choice_stop = SOURCE.index("st.stop()", guide_stage)
+    first_impression = SOURCE.index("FIRST IMPRESSION")
 
     assert microphone_gate < microphone_stop < guide_stage
+    assert guide_stage < guide_choice_stop < first_impression
     assert 'href="?entry=guide"' in SOURCE
     assert '?entry=guide&amp;guide=female' in SOURCE
     assert '?entry=guide&amp;guide=male' in SOURCE
