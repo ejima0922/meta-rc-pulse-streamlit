@@ -19,6 +19,7 @@ st.set_page_config(
 
 ROOT_DIR = Path(__file__).resolve().parent
 EMBEDDED_DIR = ROOT_DIR / "embedded"
+APPROVED_MIC_IMAGE = ROOT_DIR / "assets" / "pulse_mic_entry_approved.webp"
 
 
 def read_embedded_text(name: str) -> str:
@@ -82,6 +83,10 @@ html, body, [data-testid="stAppViewContainer"], .stApp {
 .hero-kicker {text-align:center;color:#d8b879;font-weight:800;letter-spacing:.16em;font-size:.82rem;margin:.5rem 0 .7rem;}
 .hero-help {text-align:center;color:rgba(242,248,255,.94);font-size:clamp(1.02rem,2.2vw,1.28rem);font-weight:800;line-height:1.7;margin:0 auto 1rem;}
 .hero-help small {display:block;color:rgba(217,230,245,.70);font-size:.78rem;font-weight:650;margin-top:.35rem;}
+.mic-stage {position:relative;max-width:820px;margin:0 auto;border-radius:28px;overflow:hidden;background:#01030a;box-shadow:0 30px 90px rgba(0,0,0,.48);}
+.mic-stage img {display:block;width:100%;height:auto;}
+.mic-hit {position:absolute;z-index:5;left:18.5%;top:63.7%;width:63%;height:9.4%;border:1px solid transparent;border-radius:999px;}
+.mic-hit:focus,.mic-hit:hover {border-color:rgba(255,239,194,.92);box-shadow:0 0 34px rgba(255,209,118,.38);}
 .guide-stage {position:relative;max-width:920px;margin:0 auto;border-radius:28px;overflow:hidden;border:1px solid rgba(213,176,103,.36);box-shadow:0 30px 90px rgba(0,0,0,.48),0 0 46px rgba(44,125,209,.14);}
 .guide-stage img {display:block;width:100%;height:auto;}
 .guide-hit {position:absolute;z-index:5;border:1px solid transparent;border-radius:20px;}
@@ -128,6 +133,31 @@ selected = str(st.query_params.get("guide", "") or "").lower()
 if selected not in {"female", "male"}:
     selected = ""
 
+entry_stage = str(st.query_params.get("entry", "") or "").lower()
+if entry_stage != "guide" and not selected:
+    try:
+        mic_payload = APPROVED_MIC_IMAGE.read_bytes()
+    except Exception:
+        mic_payload = b""
+    mic_uri = "data:image/webp;base64," + base64.b64encode(mic_payload).decode("ascii") if mic_payload else ""
+    st.markdown('<div class="hero-kicker">META RC PULSE</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="hero-help">最初にマイクを有効にしてください。'
+        '<small>マイクを自動では開始しません。次の画面で女性・男性のパルスを選びます。</small></div>',
+        unsafe_allow_html=True,
+    )
+    if mic_uri:
+        st.markdown(
+            f'''<div class="mic-stage">
+              <img src="{mic_uri}" alt="Meta RC Pulse マイク有効化画面">
+              <a class="mic-hit" href="?entry=guide" target="_self" aria-label="マイクを有効にして案内人選択へ進む"></a>
+            </div>''',
+            unsafe_allow_html=True,
+        )
+    else:
+        st.warning("承認済みマイク画面を確認中です。")
+    st.stop()
+
 img_uri = f"data:image/webp;base64,{GUIDE_IMAGE_B64}" if GUIDE_IMAGE_B64 else ""
 selected_label = "女性パルス" if selected == "female" else "男性パルス" if selected == "male" else ""
 
@@ -140,8 +170,8 @@ st.markdown(
 st.markdown(
     f'''<div class="guide-stage">
       <img src="{img_uri}" alt="Meta RC Pulse 女性・男性パルス案内人">
-      <a class="guide-hit female" href="?guide=female" target="_self" aria-label="女性パルスを選ぶ"></a>
-      <a class="guide-hit male" href="?guide=male" target="_self" aria-label="男性パルスを選ぶ"></a>
+      <a class="guide-hit female" href="?entry=guide&amp;guide=female" target="_self" aria-label="女性パルスを選ぶ"></a>
+      <a class="guide-hit male" href="?entry=guide&amp;guide=male" target="_self" aria-label="男性パルスを選ぶ"></a>
     </div>''',
     unsafe_allow_html=True,
 )
