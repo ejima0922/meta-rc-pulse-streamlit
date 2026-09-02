@@ -1,3 +1,25 @@
+import streamlit as st
+
+st.set_page_config(page_title="プレビュー終了", page_icon="🔒", layout="centered")
+st.markdown(
+    """
+    <style>
+    #MainMenu, footer, header, [data-testid="stToolbar"] {display:none !important;}
+    .stApp {background:#020817;color:#fff;}
+    .retired {max-width:680px;margin:20vh auto;padding:2rem;border:1px solid #31425f;
+      border-radius:24px;background:#071225;text-align:center;}
+    .retired h1 {font-size:clamp(1.8rem,6vw,3rem);}
+    .retired p {color:#c7d4e8;line-height:1.8;}
+    </style>
+    <div class="retired">
+      <h1>このプレビューは終了しました</h1>
+      <p>このURLは正規のライブパルス版ではないため、利用できない状態にしました。</p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+st.stop()
+
 from pathlib import Path
 
 # Keep the verified public-flow logic in app_core.py and only override media loading here.
